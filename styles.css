@@ -86,6 +86,16 @@ nav a {
 
 nav a:hover, nav a.current { color: #111111; }
 
+.language-link {
+  padding-left: 16px;
+  border-left: 1px solid #d5d5d5;
+  text-transform: none;
+}
+
+.zh-page {
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Tahoma, Arial, sans-serif;
+}
+
 .site-content {
   padding: 20px 30px 28px;
   background: var(--panel-bg);
