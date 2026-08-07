@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive multisegment visualization of Ext^0 and Ext^1 for characters in type II theta lifting.">
+  <title>Character Ext visualization | Jialiang Zou</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ext-lab {
+      --ext-ink: #202124;
+      --ext-muted: #929292;
+      --ext-line: #ececee;
+      --ext-blue: #3498f5;
+      --ext-orange: #fa873b;
+      --ext-green: #56c779;
+      --ext-pink: #ea68ad;
+      --ext-soft-blue: #e3f1ff;
+      --ext-panel: #f6f6f7;
+      --ext-code: #e3e3e5;
+      margin: 0 0 20px;
+      padding: 28px 38px 30px;
+      border: 0;
+      background: #ffffff;
+      color: var(--ext-ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    .ext-lab h2 {
+      margin: 0 0 14px;
+      color: var(--ext-ink);
+      font-family: inherit;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: -.02em;
+    }
+    .ext-intro { max-width: 820px; color: #626262; }
+    .ext-formula {
+      display: inline-block;
+      color: var(--ext-ink);
+      font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif;
+      font-size: 1.04em;
+    }
+    .ext-controls {
+      margin: 26px 0 16px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px 28px;
+    }
+    .ext-control {
+      display: grid;
+      gap: 8px;
+      color: var(--ext-ink);
+      font-weight: 500;
+    }
+    .ext-control input {
+      width: 100%;
+      accent-color: var(--ext-blue);
+    }
+    .ext-position-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 18px;
+    }
+    .ext-actions {
+      margin: 0 0 26px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 12px;
+    }
+    .ext-button {
+      min-width: 138px;
+      padding: 9px 14px;
+      border: 0;
+      border-radius: 10px;
+      background: #202124;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .ext-button:hover { background: #3a3b3d; }
+    .ext-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 14px;
+      color: var(--ext-ink);
+    }
+    .ext-status strong {
+      color: var(--ext-ink);
+      font-weight: 400;
+    }
+    .ext-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--ext-soft-blue);
+      color: var(--ext-blue);
+      font-weight: 500;
+    }
+    .ext-chart {
+      display: block;
+      width: 100%;
+      height: 360px;
+      margin: 8px 0 18px;
+      overflow: visible;
+    }
+    .ext-grid,
+    .ext-axis,
+    .ext-divider,
+    .ext-phase-line {
+      stroke: var(--ext-line);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+    .ext-grid { opacity: 1; }
+    .ext-divider { stroke-dasharray: 4 5; }
+    .ext-label,
+    .ext-note,
+    .ext-tick {
+      fill: var(--ext-muted);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+    }
+    .ext-label { fill: var(--ext-ink); font-weight: 500; }
+    .ext-segment {
+      stroke-width: 14;
+      stroke-linecap: round;
+      opacity: .48;
+      vector-effect: non-scaling-stroke;
+    }
+    .ext-dot {
+      stroke: #ffffff;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+    .ext-current {
+      stroke: var(--ext-ink);
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+    .ext-fixed { fill: var(--ext-blue); stroke: var(--ext-blue); }
+    .ext-moving { fill: var(--ext-orange); stroke: var(--ext-orange); }
+    .ext-out-one { fill: var(--ext-green); stroke: var(--ext-green); }
+    .ext-out-two { fill: var(--ext-pink); stroke: var(--ext-pink); }
+    .ext-regular { fill: #eeeeef; stroke: #d4d4d6; }
+    .ext-a-only { fill: var(--ext-blue); stroke: var(--ext-blue); }
+    .ext-both { fill: var(--ext-green); stroke: var(--ext-green); }
+    .ext-b-only { fill: var(--ext-orange); stroke: var(--ext-orange); }
+    .ext-results {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .ext-result {
+      padding: 16px 18px 18px;
+      border: 0;
+      border-radius: 16px;
+      background: var(--ext-panel);
+    }
+    .ext-result h3 {
+      margin: 0 0 10px;
+      color: var(--ext-muted);
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 400;
+    }
+    .ext-result code {
+      display: block;
+      min-height: 38px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--ext-code);
+      color: var(--ext-ink);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .95em;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+    .ext-result .ext-badge { margin-top: 8px; }
+    .ext-detail { margin: 18px 0 0; color: var(--ext-muted); }
+    @media (max-width: 620px) {
+      .ext-controls, .ext-results { grid-template-columns: 1fr; }
+      .ext-position-row { grid-column: auto; grid-template-columns: 1fr; }
+      .ext-button { width: 100%; }
+      .ext-chart { height: 335px; }
+      .ext-lab { padding: 22px 18px 24px; font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="page-shell">
+    <header class="site-header">
+      <h1 class="site-title"><a href="index.html">Jialiang Zou <span>邹佳良</span></a></h1>
+      <nav aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a class="current" aria-current="page" href="publications.html">Publications</a>
+        <a href="teaching.html">Teaching</a>
+        <a class="language-link" lang="zh-CN" href="publications_zh.html">中文</a>
+      </nav>
+    </header>
+
+    <main id="main" class="site-content page-content">
+      <section class="outlined-section ext-lab" aria-labelledby="ext-title">
+        <h2 id="ext-title">Character Ext spaces in multisegment language</h2>
+        <div class="ext-intro">
+          <p>Fix the segment <span class="ext-formula">Δ<sub>triv</sub> = [(d−1)/2, −(d−1)/2]</span> for <span class="ext-formula">𝟙<sub>d</sub></span>, where <span class="ext-formula">d=m−n</span>. Move the character segment</p>
+          <p><span class="ext-formula">η(n,m;k)=|det|<sup>k−m/2</sup>, &nbsp; Δ(k)=[k−(d+1)/2, k−n−(d−1)/2]</span>.</p>
+        </div>
+
+        <div class="ext-controls" aria-label="Visualization parameters">
+          <label class="ext-control" for="ext-n">
+            <span>n = <output id="ext-n-value">4</output></span>
+            <input id="ext-n" type="range" min="1" max="8" step="1" value="4">
+          </label>
+          <label class="ext-control" for="ext-d">
+            <span>d = m−n = <output id="ext-d-value">2</output></span>
+            <input id="ext-d" type="range" min="0" max="8" step="1" value="2">
+          </label>
+          <div class="ext-position-row">
+            <label class="ext-control" for="ext-k">
+              <span>Moving position k = <output id="ext-k-value">−2</output></span>
+              <input id="ext-k" type="range" min="-2" max="8" step="1" value="-2">
+            </label>
+            <button id="ext-play" class="ext-button" type="button">Play left to right</button>
+          </div>
+        </div>
+
+        <div class="ext-actions">
+          <div id="ext-status" class="ext-status" aria-live="polite"></div>
+        </div>
+
+        <svg id="ext-chart" class="ext-chart" role="img" aria-labelledby="ext-chart-title ext-chart-desc">
+          <title id="ext-chart-title">A character segment moving past the fixed trivial segment</title>
+          <desc id="ext-chart-desc"></desc>
+        </svg>
+
+        <div class="ext-results">
+          <section class="ext-result" aria-labelledby="ext-zero-title">
+            <h3 id="ext-zero-title">Ext<sup>0</sup></h3>
+            <code id="ext-zero"></code>
+            <span id="ext-zero-kind" class="ext-badge"></span>
+          </section>
+          <section class="ext-result" aria-labelledby="ext-one-title">
+            <h3 id="ext-one-title">Ext<sup>1</sup></h3>
+            <code id="ext-one"></code>
+            <span id="ext-one-kind" class="ext-badge"></span>
+          </section>
+        </div>
+        <p id="ext-detail" class="ext-detail"></p>
+      </section>
+      <p><a href="publications.html">← Back to publications</a></p>
+    </main>
+
+    <footer><p>© 2026 Jialiang Zou · Interactive companion to “Godement–Jacquet L-function and homological theta lifting”</p></footer>
+  </div>
+
+  <script>
+    (() => {
+      const nInput = document.getElementById('ext-n');
+      const dInput = document.getElementById('ext-d');
+      const kInput = document.getElementById('ext-k');
+      const playButton = document.getElementById('ext-play');
+      const chart = document.getElementById('ext-chart');
+      const ns = 'http://www.w3.org/2000/svg';
+      let timer = null;
+      let lastWidth = 0;
+
+      const make = (name, attrs = {}, value = '') => {
+        const node = document.createElementNS(ns, name);
+        Object.entries(attrs).forEach(([key, item]) => node.setAttribute(key, item));
+        if (value) node.textContent = value;
+        return node;
+      };
+
+      const half = q => {
+        if (q === 0) return '0';
+        if (q % 2 === 0) return String(q / 2);
+        return `${q < 0 ? '−' : ''}${Math.abs(q)}/2`;
+      };
+
+      const interval = segment => segment.empty ? '∅' : `[${half(segment.hi)}, ${half(segment.lo)}]`;
+      const etaText = (n, exponentQ) => `|det_${n}|^(${half(exponentQ)})`;
+
+      function category(k, n, d) {
+        const m = n + d;
+        const inA = k >= 0 && k <= n - 1;
+        const inB = k >= d + 1 && k <= m;
+        if (inA && inB) return 'both';
+        if (inA) return 'a-only';
+        if (inB) return 'b-only';
+        return 'regular';
+      }
+
+      function categoryLabel(kind) {
+        if (kind === 'a-only') return '𝒜 ∖ ℬ';
+        if (kind === 'both') return '𝒜 ∩ ℬ';
+        if (kind === 'b-only') return 'ℬ ∖ 𝒜';
+        return 'outside 𝒜 ∪ ℬ';
+      }
+
+      const categoryClass = kind => `ext-${kind}`;
+
+      function stop() {
+        if (timer !== null) {
+          clearInterval(timer);
+          timer = null;
+        }
+        playButton.textContent = 'Play left to right';
+      }
+
+      function addSegment(group, segment, y, className, x) {
+        if (segment.empty) {
+          group.appendChild(make('text', {x: x(0), y: y + 5, class: 'ext-note'}, '∅'));
+          return;
+        }
+        group.appendChild(make('line', {
+          x1: x(segment.lo), y1: y, x2: x(segment.hi), y2: y,
+          class: `ext-segment ${className}`
+        }));
+        for (let q = segment.lo; q <= segment.hi; q += 2) {
+          group.appendChild(make('circle', {cx: x(q), cy: y, r: 5, class: `ext-dot ${className}`}));
+        }
+      }
+
+      function draw(n, d, k, fixedSegment, movingSegment, outputs, description) {
+        chart.replaceChildren();
+        chart.appendChild(make('title', {id: 'ext-chart-title'}, 'A character segment moving past the fixed trivial segment'));
+        chart.appendChild(make('desc', {id: 'ext-chart-desc'}, description));
+        const width = Math.max(300, Math.round(chart.getBoundingClientRect().width || 720));
+        chart.setAttribute('viewBox', `0 0 ${width} 330`);
+        const left = width < 430 ? 72 : 112;
+        const right = 14;
+        const plotWidth = Math.max(180, width - left - right);
+        const m = n + d;
+        const kMin = -2;
+        const kMax = m + 2;
+        const qMin = 2 * kMin - m - n - 1;
+        const qMax = 2 * kMax - m + n + 1;
+        const x = q => left + ((q - qMin) / (qMax - qMin)) * plotWidth;
+        const phaseX = value => left + ((value - kMin) / (kMax - kMin)) * plotWidth;
+        const group = make('g');
+        chart.appendChild(group);
+
+        group.appendChild(make('text', {x: left - 9, y: 35, 'text-anchor': 'end', class: 'ext-label'}, 'position k'));
+        group.appendChild(make('line', {x1: left, y1: 30, x2: width - right, y2: 30, class: 'ext-phase-line'}));
+        const runs = [];
+        for (let value = kMin; value <= kMax; value += 1) {
+          const kind = category(value, n, d);
+          const previous = runs[runs.length - 1];
+          if (previous && previous.kind === kind) previous.end = value;
+          else runs.push({kind, start: value, end: value});
+          group.appendChild(make('circle', {
+            cx: phaseX(value), cy: 30, r: value === k ? 7 : 4,
+            class: `${categoryClass(kind)}${value === k ? ' ext-current' : ''}`
+          }));
+        }
+        if (width >= 520) {
+          runs.forEach(run => {
+            group.appendChild(make('text', {
+              x: phaseX((run.start + run.end) / 2), y: 57,
+              'text-anchor': 'middle', class: 'ext-note'
+            }, categoryLabel(run.kind)));
+          });
+        }
+
+        for (let q = qMin; q <= qMax; q += 2) {
+          const xp = x(q);
+          group.appendChild(make('line', {x1: xp, y1: 74, x2: xp, y2: 278, class: 'ext-grid'}));
+          if (width >= 520 || (q - qMin) % 4 === 0) {
+            group.appendChild(make('text', {x: xp, y: 320, 'text-anchor': 'middle', class: 'ext-tick'}, half(q)));
+          }
+        }
+
+        group.appendChild(make('text', {x: 8, y: 78, class: 'ext-note'}, 'input'));
+        group.appendChild(make('text', {x: left - 9, y: 107, 'text-anchor': 'end', class: 'ext-label'}, 'Δtriv'));
+        group.appendChild(make('text', {x: left - 9, y: 151, 'text-anchor': 'end', class: 'ext-label'}, 'Δη(k)'));
+        addSegment(group, fixedSegment, 102, 'ext-fixed', x);
+        addSegment(group, movingSegment, 146, 'ext-moving', x);
+        group.appendChild(make('line', {x1: 8, y1: 174, x2: width - right, y2: 174, class: 'ext-divider'}));
+        group.appendChild(make('text', {x: 8, y: 195, class: 'ext-note'}, 'ordered factors of Ext⁰'));
+        group.appendChild(make('text', {x: left - 9, y: 226, 'text-anchor': 'end', class: 'ext-label'}, outputs[0].label));
+        group.appendChild(make('text', {x: left - 9, y: 270, 'text-anchor': 'end', class: 'ext-label'}, outputs[1].label));
+        addSegment(group, outputs[0].segment, 221, 'ext-out-one', x);
+        addSegment(group, outputs[1].segment, 265, 'ext-out-two', x);
+        group.appendChild(make('line', {x1: left, y1: 288, x2: width - right, y2: 288, class: 'ext-axis'}));
+      }
+
+      function render() {
+        const n = Number(nInput.value);
+        const d = Number(dInput.value);
+        const m = n + d;
+        kInput.max = String(m + 2);
+        if (Number(kInput.value) > m + 2) kInput.value = String(m + 2);
+        const k = Number(kInput.value);
+        const exponentQ = 2 * k - m;
+        const kind = category(k, n, d);
+        const eta = etaText(n, exponentQ);
+        const deltaTriv = d === 0 ? {empty: true, hi: 0, lo: 0} : {hi: d - 1, lo: 1 - d};
+        const deltaEta = {hi: 2 * k - d - 1, lo: 2 * k - 2 * n - d + 1};
+        let outputs = [
+          {label: 'factor 1', segment: deltaTriv},
+          {label: 'factor 2', segment: deltaEta}
+        ];
+        let extZero = d === 0 ? eta : `𝟙_${d} × ${eta} ≃ ${eta} × 𝟙_${d}`;
+        let extOne = '0';
+        let zeroKind = 'irreducible';
+        let oneKind = 'vanishes';
+        let detail = 'The two input segments are unlinked.';
+
+        if (kind === 'a-only') {
+          outputs = [{label: 'Δη(k)', segment: deltaEta}, {label: 'Δtriv', segment: deltaTriv}];
+          extZero = d === 0 ? eta : `${eta} × 𝟙_${d}`;
+          zeroKind = k === d ? 'nested · irreducible' : 'linked · length 2';
+          detail = k === d ? 'Δtriv is nested in Δη(k).' : 'Δη(k) precedes Δtriv.';
+        } else if (kind === 'both') {
+          const delta1 = {hi: d - 1, lo: 2 * k - 2 * n - d + 1};
+          const delta2 = {hi: 2 * k - d - 1, lo: 1 - d};
+          outputs = [{label: 'Δ₁(k)', segment: delta1}, {label: 'Δ₂(k)', segment: delta2}];
+          extZero = `|det_${m - k}|^(${half(k - n)}) × |det_${k}|^(${half(n - m + k)})`;
+          extOne = `π(${n},${m};${k})`;
+          zeroKind = 'linked · length 2';
+          oneKind = 'irreducible quotient';
+          detail = `Δ₁∪Δ₂ = Δη(k) = ${interval(deltaEta)}; Δ₁∩Δ₂ = Δtriv = ${interval(deltaTriv)}.`;
+        } else if (kind === 'b-only') {
+          outputs = [{label: 'Δtriv', segment: deltaTriv}, {label: 'Δη(k)', segment: deltaEta}];
+          extZero = d === 0 ? eta : `𝟙_${d} × ${eta}`;
+          zeroKind = k === n ? 'nested · irreducible' : 'linked · length 2';
+          detail = k === n ? 'Δtriv is nested in Δη(k).' : 'Δtriv precedes Δη(k).';
+        }
+
+        document.getElementById('ext-n-value').textContent = String(n);
+        document.getElementById('ext-d-value').textContent = String(d);
+        document.getElementById('ext-k-value').textContent = String(k).replace('-', '−');
+        document.getElementById('ext-status').innerHTML = [
+          `<span class="ext-badge">m = ${m}</span>`,
+          `<strong>η(n,m;k) = ${eta}</strong>`,
+          `<span class="ext-badge">${categoryLabel(kind)}</span>`
+        ].join('');
+        document.getElementById('ext-zero').textContent = extZero;
+        document.getElementById('ext-one').textContent = extOne;
+        document.getElementById('ext-zero-kind').textContent = zeroKind;
+        document.getElementById('ext-one-kind').textContent = oneKind;
+        document.getElementById('ext-detail').textContent = detail;
+        draw(n, d, k, deltaTriv, deltaEta, outputs,
+          `For n=${n}, m=${m}, the moving character segment is ${interval(deltaEta)} in ${categoryLabel(kind)}. Ext zero is ${extZero}; Ext one is ${extOne}.`);
+      }
+
+      function play() {
+        if (timer !== null) {
+          stop();
+          return;
+        }
+        if (Number(kInput.value) >= Number(kInput.max)) kInput.value = kInput.min;
+        playButton.textContent = 'Pause';
+        timer = setInterval(() => {
+          const next = Number(kInput.value) + 1;
+          if (next > Number(kInput.max)) {
+            stop();
+            return;
+          }
+          kInput.value = String(next);
+          render();
+        }, 700);
+      }
+
+      nInput.addEventListener('input', () => { stop(); render(); });
+      dInput.addEventListener('input', () => { stop(); render(); });
+      kInput.addEventListener('input', () => { stop(); render(); });
+      playButton.addEventListener('click', play);
+      new ResizeObserver(entries => {
+        const width = Math.round(entries[0].contentRect.width);
+        if (Math.abs(width - lastWidth) > 1) {
+          lastWidth = width;
+          render();
+        }
+      }).observe(chart);
+      render();
+    })();
+  </script>
+</body>
+</html>
