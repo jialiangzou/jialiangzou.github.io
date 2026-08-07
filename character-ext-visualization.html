@@ -454,11 +454,21 @@
         const eta = etaTex(n, exponentQ);
         const deltaTriv = d === 0 ? {empty: true, hi: 0, lo: 0} : {hi: d - 1, lo: 1 - d};
         const deltaEta = {hi: 2 * k - d - 1, lo: 2 * k - 2 * n - d + 1};
-        let outputs = [
-          {label: '\\text{factor }1', segment: deltaTriv},
-          {label: '\\text{factor }2', segment: deltaEta}
-        ];
-        let extZero = d === 0 ? eta : `\\mathbf{1}_{${d}}\\times ${eta}\\simeq ${eta}\\times\\mathbf{1}_{${d}}`;
+        const isLeftRegular = kind === 'regular' && k < 0;
+        let outputs = isLeftRegular
+          ? [
+              {label: '\\Delta_{\\eta}(k)', segment: deltaEta},
+              {label: '\\Delta_{\\mathrm{triv}}', segment: deltaTriv}
+            ]
+          : [
+              {label: '\\Delta_{\\mathrm{triv}}', segment: deltaTriv},
+              {label: '\\Delta_{\\eta}(k)', segment: deltaEta}
+            ];
+        let extZero = d === 0
+          ? eta
+          : isLeftRegular
+            ? `${eta}\\times\\mathbf{1}_{${d}}\\simeq\\mathbf{1}_{${d}}\\times ${eta}`
+            : `\\mathbf{1}_{${d}}\\times ${eta}\\simeq ${eta}\\times\\mathbf{1}_{${d}}`;
         let extOne = '0';
         let zeroKind = 'irreducible';
         let oneKind = 'vanishes';
