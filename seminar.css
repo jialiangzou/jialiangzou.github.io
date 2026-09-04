@@ -32,6 +32,16 @@
   margin: 0;
 }
 
+.seminar-organizers {
+  flex-basis: 100%;
+}
+
+.person-link {
+  text-decoration: underline;
+  text-decoration-thickness: .06em;
+  text-underline-offset: 2px;
+}
+
 .table-scroll {
   width: 100%;
   margin: 8px 0 12px;
@@ -80,6 +90,10 @@
 .seminar-table .speaker-cell {
   width: 195px;
   color: #4e4c4c;
+}
+
+.seminar-table .speaker-cell .person-link {
+  font-weight: 700;
 }
 
 .seminar-table .weekday {
